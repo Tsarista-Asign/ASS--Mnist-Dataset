@@ -1,0 +1,111 @@
+{
+  "Slide 1": {
+    "Title": "Giảm Chiều Dữ Liệu trên MNIST",
+    "Content": [
+      "Nghiên cứu ứng dụng PCA và Chi-Square trên tập dữ liệu chữ số viết tay MNIST",
+      "Dữ liệu MNIST gồm 70.000 ảnh 28×28 pixel, tương đương 784 chiều mỗi mẫu",
+      "Mục tiêu: định lượng trade-off giữa mức độ nén chiều và chất lượng phân loại",
+      "Triển khai hệ thống OOP với API thống nhất cho cả hai phương pháp giảm chiều"
+    ],
+    "Image": "Ảnh minh họa lưới các chữ số viết tay 0–9 từ tập MNIST, nền trắng nét đen"
+  },
+  "Slide 2": {
+    "Title": "Vấn Đề: Lời Nguyền Chiều Cao",
+    "Content": [
+      "Dữ liệu hiện đại có hàng trăm đến hàng triệu chiều, gây bùng nổ chi phí tính toán",
+      "Không gian nhiều chiều làm loãng mật độ dữ liệu, khoảng cách mất ý nghĩa phân biệt",
+      "Huấn luyện trực tiếp trên dữ liệu thô dễ dẫn đến overfitting và lãng phí tài nguyên",
+      "Giải pháp: nén thông tin thông minh — giữ lại phần lớn nội dung, loại bỏ phần dư thừa",
+      "Giảm chiều là bước tiền xử lý chiến lược, không phải tùy chọn, trong pipeline học máy"
+    ],
+    "Image": "Biểu đồ minh họa Curse of Dimensionality: trục X là số chiều, trục Y là chi phí tính toán tăng theo cấp số nhân"
+  },
+  "Slide 3": {
+    "Title": "Tập Dữ Liệu MNIST",
+    "Content": [
+      "70.000 ảnh grayscale 28×28 pixel, phân chia 60.000 train / 10.000 test",
+      "10 lớp nhãn (chữ số 0–9), phân phối tương đối đồng đều ~10% mỗi lớp",
+      "Mỗi ảnh flatten thành vector 784 chiều; giá trị pixel chuẩn hóa về [0.0, 1.0]",
+      "Bộ nhớ X_train ở dạng gốc (float64, 784 chiều) chiếm khoảng 358,89 MB",
+      "Chuẩn vàng benchmark trong nhận dạng chữ số — kết quả có tính tái lập và so sánh cao"
+    ],
+    "Image": "Bảng thống kê MNIST: số mẫu, kích thước ảnh, số lớp kèm ví dụ ảnh từng chữ số 0-9"
+  },
+  "Slide 4": {
+    "Title": "Tổng Quan Các Phương Pháp Giảm Chiều",
+    "Content": [
+      "Nhánh 1 — Trích xuất đặc trưng: tạo chiều mới từ tổ hợp các chiều gốc (PCA, LDA, Autoencoder)",
+      "Nhánh 2 — Chọn lựa đặc trưng: giữ tập con chiều gốc có tính phân biệt cao (Chi-Square, LASSO)",
+      "t-SNE / UMAP phù hợp trực quan hóa 2D/3D nhưng không dùng làm đầu vào cho classifier",
+      "Nghiên cứu chọn PCA (không cần nhãn) và Chi-Square (cần nhãn) để so sánh hai triết lý",
+      "Cả hai phương pháp được bọc trong interface thống nhất, notebook chỉ đổi biến METHOD"
+    ],
+    "Image": "Sơ đồ phân loại các phương pháp giảm chiều chia hai nhánh: Feature Extraction và Feature Selection"
+  },
+  "Slide 5": {
+    "Title": "PCA — Phân Tích Thành Phần Chính",
+    "Content": [
+      "Tìm các trục phương sai lớn nhất (principal components) qua phân rã ma trận hiệp phương sai",
+      "Các thành phần chính trực giao nhau, loại bỏ hoàn toàn đa cộng tuyến giữa đặc trưng",
+      "Tham số n_components = 0.95: tự động chọn k nhỏ nhất để giữ ≥ 95% tổng phương sai",
+      "Không cần nhãn (unsupervised) — có thể áp dụng trước khi có thông tin về nhãn dữ liệu",
+      "Hạn chế: thành phần mới mất tính giải thích; chỉ nắm bắt quan hệ tuyến tính"
+    ],
+    "Image": "Biểu đồ Explained Variance Ratio tích lũy của PCA trên MNIST: đường cong tăng dần đến 95% tại chiều thứ 154"
+  },
+  "Slide 6": {
+    "Title": "Chi-Square — Chọn Đặc Trưng Theo Thống Kê",
+    "Content": [
+      "Tính điểm χ² cho từng đặc trưng: đo mức phụ thuộc thống kê giữa pixel và nhãn chữ số",
+      "SelectKBest giữ lại K pixel có điểm χ² cao nhất — là các pixel mang thông tin phân biệt nhất",
+      "Cần nhãn khi huấn luyện (supervised) — khác biệt căn bản so với PCA",
+      "Đặc trưng được giữ là pixel gốc, dễ giải thích và trực quan hơn PCA",
+      "Phù hợp khi cần biết rõ vùng nào của ảnh đóng góp nhiều nhất cho việc phân loại"
+    ],
+    "Image": "Heatmap 28×28 hiển thị điểm χ² của từng pixel MNIST — vùng trung tâm sáng hơn, vùng viền tối (ít quan trọng)"
+  },
+  "Slide 7": {
+    "Title": "Quy Trình Thực Hiện",
+    "Content": [
+      "Tải & chuẩn hóa: MNISTDataLoader tải dữ liệu, chuẩn hóa [0,1], flatten thành 784 chiều",
+      "Đo baseline: huấn luyện Logistic Regression trên 784 chiều, ghi nhận bộ nhớ, thời gian, accuracy",
+      "Giảm chiều: fit_transform trên train set, transform trên test set — tránh data leakage",
+      "Đo sau giảm chiều: huấn luyện lại classifier mới trên dữ liệu đã nén, đo lại các chỉ số",
+      "So sánh: print_comparison_table và plot_comparison_reduction hiển thị % thay đổi từng chỉ số"
+    ],
+    "Image": "Sơ đồ luồng pipeline: Load → Normalize → Baseline → Reduce → Train → Evaluate → Compare"
+  },
+  "Slide 8": {
+    "Title": "Kết Quả Chính — PCA 95% Phương Sai",
+    "Content": [
+      "Số chiều giảm từ 784 xuống còn 154 — giữ lại 95,02% tổng phương sai dữ liệu",
+      "Bộ nhớ X_train giảm từ 358,89 MB xuống 70,50 MB — tiết kiệm 80,36%",
+      "Thời gian huấn luyện giảm từ 19,69 giây xuống 3,60 giây — nhanh hơn 5,5 lần",
+      "Thời gian dự đoán giảm từ 0,0256 giây xuống 0,0052 giây — giảm 79,7%",
+      "Độ chính xác chỉ giảm từ 92,57% xuống 92,29% — hao hụt vỏn vẹn 0,28%"
+    ],
+    "Image": "Biểu đồ cột song song 4 nhóm: Bộ nhớ / Thời gian Fit / Thời gian Predict / Accuracy — màu xanh Baseline, màu cam Sau PCA"
+  },
+  "Slide 9": {
+    "Title": "Phân Tích Trade-off — Nhiều Mức n_components",
+    "Content": [
+      "n_components = 0.99: ~330 chiều, accuracy ~92,81% — gần baseline nhưng nén ít",
+      "n_components = 0.95: 154 chiều, accuracy 92,29% — điểm cân bằng tối ưu (khuyến nghị)",
+      "n_components = 0.90: ~87 chiều, accuracy ~91,65% — nén mạnh, suy giảm rõ hơn",
+      "n_components = 0.80: ~43 chiều, accuracy ~89,60% — nén cực mạnh, mất hơn 3% accuracy",
+      "Đường cong trade-off phi tuyến: vùng 0.95–0.99 là sweet spot hiệu quả cao nhất"
+    ],
+    "Image": "Đồ thị đường (line chart) trục X: n_components (0.80→0.99), trục Y trái: số chiều, trục Y phải: accuracy — thể hiện điểm gối (knee point) tại 0.95"
+  },
+  "Slide 10": {
+    "Title": "Kết Luận và Hướng Phát Triển",
+    "Content": [
+      "PCA (95%) tiết kiệm ~80% bộ nhớ và thời gian, chỉ đánh đổi 0,28% độ chính xác",
+      "Dữ liệu ảnh có chiều nội tại thấp — giảm chiều là bước tiền xử lý hợp lý và hiệu quả",
+      "Hướng mở rộng: thử SVM, Random Forest; so sánh đầy đủ PCA vs Chi-Square song song",
+      "Nghiên cứu thêm Kernel PCA, Autoencoder cho cấu trúc dữ liệu phi tuyến phức tạp hơn",
+      "Giảm chiều không chỉ tiết kiệm tài nguyên mà còn giúp hiểu cấu trúc nội tại của dữ liệu"
+    ],
+    "Image": "Infographic tóm tắt: mũi tên từ 784 chiều → 154 chiều với các nhãn: -80% Memory, -82% Fit Time, -0.28% Accuracy"
+  }
+}

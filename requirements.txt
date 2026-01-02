@@ -1,0 +1,6 @@
+# MNIST Dataset - OOP project (hojjatk/mnist-dataset style)
+numpy>=1.24.0
+matplotlib>=3.7.0
+mnist-datasets>=0.13
+scikit-learn>=1.3.0
+jupyter>=1.0.0
